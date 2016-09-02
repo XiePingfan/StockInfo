@@ -1,0 +1,335 @@
+#mysql -h localhost -u root -p
+
+#mysql -h localhost -u stockinfo -p 
+#mysqld
+#mysqladmin -uroot shutdown
+
+#创建DataBase
+#drop database StockInfoDB;
+create database StockInfoDB CHARACTER SET gbk;
+FLUSH PRIVILEGES;
+
+GRANT ALL ON StockInfoDB.* TO 'stockinfo'@'%' identified by 'stock@info';
+FLUSH PRIVILEGES;
+
+GRANT ALL ON StockInfoDB.* TO 'stockinfo'@'localhost' identified by 'stock@info';
+FLUSH PRIVILEGES;
+
+
+use StockInfoDB;
+SET NAMES GBK;
+
+CREATE TABLE IF NOT EXISTS T_StockBaseInfo
+(
+  StockID 		  CHAR(6) NOT NULL  ,   #股票代码
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  StockName     VARCHAR(20),										#股票中文名称
+  StockCode     VARCHAR(8)  										#股票代码
+);
+#建立StockID上的索引
+CREATE INDEX I_StockBaseInfo_ID ON T_StockBaseInfo(StockID);
+
+CREATE TABLE IF NOT EXISTS t_stockhis_sina
+(
+  StockID 		  CHAR(6) NOT NULL  ,   #股票代码
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  ExDate				CHAR(8)	NOT NULL,								 #成交日期
+  BeginPrice    NUMERIC(10,3),									 #开盘价
+  HighestPrice  NUMERIC(10,3),									 #最高价
+  EndPrice  NUMERIC(10,3),									     #收盘价
+  LowestPrice   NUMERIC(10,3),									 #最低价
+  ExQuantity   BIGINT,      									     #成交量
+  AdjPrice		NUMERIC(10,3),									     #复权收盘价
+  ExAmount  BIGINT															#成交额(千元)
+  
+);
+#建立StockID上的索引
+CREATE INDEX I_StockHisSina_ID ON T_StockHis_Sina(StockID);
+#建立StockID,ExDate上的索引
+CREATE INDEX I_StockHisSina_ID_ExDate ON T_StockHis_Sina(StockID,ExDate);
+
+CREATE TABLE IF NOT EXISTS t_stockadjhis_sina
+(
+  StockID 		  CHAR(6) NOT NULL  ,   #股票代码
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  ExDate				CHAR(10)	NOT NULL,								 #成交日期
+  BeginPrice    NUMERIC(10,3),									 #开盘价
+  HighestPrice  NUMERIC(10,3),									 #最高价
+  EndPrice  NUMERIC(10,3),									     #收盘价
+  LowestPrice   NUMERIC(10,3),									 #最低价
+  ExQuantity   BIGINT,      									     #交易量(股)
+  AdjRate		NUMERIC(10,3),									     #复权因子
+  ExAmount  BIGINT															#交易金额(元)
+);
+#建立StockID上的索引
+CREATE INDEX I_StockAdjHisSina_ID ON t_stockadjhis_sina(StockID);
+#建立StockID,ExDate上的索引
+CREATE INDEX I_StockAdjHisSina_ID_ExDate ON t_stockadjhis_sina(StockID,ExDate);
+
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600570','SH','恒生电子','HSDZ');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000001','SZ','平安银行','PAYX');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000001','SH','上证指数','SZZS');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000002','SZ','万 科Ａ','WKA');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000046','SZ','泛海控股','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000063','SZ','中兴通讯','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000333','SZ','美的集团','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000338','SZ','潍柴动力','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000400','SZ','许继电气','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000423','SZ','东阿阿胶','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000521','SZ','美菱电器','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000597','SZ','东北制药','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000623','SZ','吉林敖东','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000651','SZ','格力电器','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000731','SZ','四川美丰','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000751','SZ','锌业股份','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000776','SZ','广发证券','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000792','SZ','盐湖钾肥','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000839','SZ','中信国安','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000895','SZ','双汇发展','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('000983','SZ','西山煤电','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('002024','SZ','苏宁云商','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('002032','SZ','苏泊尔','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('002038','SZ','双鹭药业','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('002099','SZ','海翔药业','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('002174','SZ','游族网络','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('002187','SZ','广百股份','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('002346','SZ','柘中建设','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('002415','SZ','海康威视','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('002508','SZ','老板电器','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('002516','SZ','旷达科技','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('002570','SZ','贝因美','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('002615','SZ','哈尔斯','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('300017','SZ','网宿科技','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('300047','SZ','天源迪科','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('300147','SZ','香雪制药','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('300433','SZ','蓝思科技','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600000','SH','浦发银行','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600019','SH','宝钢股份','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600031','SH','三一重工','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600036','SH','招商银行','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600037','SH','歌华有线','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600048','SH','保利地产','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600060','SH','海信电器','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600062','SH','华润双鹤','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600089','SH','特变电工','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600118','SH','中国卫星','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600177','SH','雅戈尔','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600201','SH','金宇集团','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600251','SH','冠农股份','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600269','SH','赣粤高速','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600305','SH','恒顺醋业','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600332','SH','白云山','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600336','SH','澳柯玛','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600350','SH','山东高速','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600352','SH','浙江龙盛','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600371','SH','万向德农','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600398','SH','海澜之家','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600487','SH','亨通光电','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600498','SH','烽火通信','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600547','SH','山东黄金','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600549','SH','厦门钨业','');
+
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600585','SH','海螺水泥','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600596','SH','新安股份','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600655','SH','豫园商城','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600750','SH','江中药业','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600795','SH','国电电力','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600804','SH','鹏博士','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('600887','SH','伊利股份','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('601006','SH','大秦铁路','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('601012','SH','隆基股份','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('601088','SH','中国神华','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('601211','SH','国泰君安','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('601328','SH','交通银行','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('601333','SH','广深铁路','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('601377','SH','兴业证券','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('601628','SH','中国人寿','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('601808','SH','中海油服','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('601857','SH','中国石油','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('601939','SH','建设银行','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('601985','SH','中国核电','');
+insert into T_StockBaseInfo(StockID,StockBelong,StockName,StockCode)
+values ('603288','SH','海天味业','');
+
+insert into T_StockBaseInfo (StockID,StockBelong,StockName,StockCode) values ('399001','SZ','深圳成指','SZCZ');
+
+
+CREATE TABLE IF NOT EXISTS t_stock_past
+(
+  StockID 		  CHAR(6) NOT NULL  ,   #股票代码
+  StockName     VARCHAR(20),										#股票中文名称
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  ExDate				CHAR(8)	NOT NULL,								 #成交日期
+  BeginPrice    NUMERIC(10,3),									 #开盘价
+  HighestPrice  NUMERIC(10,3),									 #最高价
+  EndPrice  NUMERIC(10,3),									     #收盘价
+  LowestPrice   NUMERIC(10,3),									 #最低价
+  ExAmount  BIGINT,															#成交额(千元)
+  EndPrice1  NUMERIC(10,3),									     #收盘价
+  ExAmount1  BIGINT,															#成交额(千元)
+  EndPrice2  NUMERIC(10,3),									     #收盘价
+  ExAmount2  BIGINT,															#成交额(千元)
+  EndPrice3  NUMERIC(10,3),									     #收盘价
+  ExAmount3  BIGINT,															#成交额(千元)
+  EndPrice4  NUMERIC(10,3),									     #收盘价
+  ExAmount4  BIGINT,															#成交额(千元)
+  EndPrice5  NUMERIC(10,3),									     #收盘价
+  ExAmount5  BIGINT,															#成交额(千元)
+  Msg VARCHAR(1024)
+);
+#建立StockID,StockBelong上的索引
+CREATE INDEX I_Stock_Past_ID_ExDate ON t_stock_past(StockID,StockBelong);
+
+CREATE TABLE IF NOT EXISTS t_stock_assert_event
+(
+  StockID 		  CHAR(6) NOT NULL  ,   #股票代码
+  StockName     VARCHAR(20),										#股票中文名称
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  ExDate				CHAR(8)	NOT NULL,								 #成交日期
+  EventMsg VARCHAR(1024),
+  AssertMsg VARCHAR(1024)
+);
+#建立StockID,StockBelong上的索引
+CREATE INDEX I_Stock_Assert_Event_ID_ExDate ON t_stock_assert_event(StockID,StockBelong);
+#建立EventMsg上的索引
+CREATE INDEX I_Stock_Assert_Event_EventMsg ON t_stock_assert_event(EventMsg);
+#AssertMsg
+CREATE INDEX I_Stock_Assert_Event_AssertMsg ON t_stock_assert_event(AssertMsg);
+
+CREATE TABLE IF NOT EXISTS t_stock_event
+(
+  StockID 		  CHAR(6) NOT NULL  ,   #股票代码
+  StockName     VARCHAR(20),										#股票中文名称
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  ExDate				CHAR(8)	NOT NULL,								 #成交日期
+  EventMsg VARCHAR(1024)
+);
+#建立StockID,StockBelong上的索引
+CREATE INDEX I_Stock_Event_ID_ExDate ON t_stock_event(StockID,StockBelong);
+#建立EventMsg上的索引
+CREATE INDEX I_Stock_Event_EventMsg ON t_stock_event(EventMsg);
+
+CREATE TABLE IF NOT EXISTS t_stock_past_adj
+(
+  StockID 		  CHAR(6) NOT NULL  ,   #股票代码
+  StockName     VARCHAR(20),										#股票中文名称
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  ExDate				CHAR(10)	NOT NULL,								 #成交日期
+  BeginPrice    NUMERIC(10,3),									 #开盘价
+  HighestPrice  NUMERIC(10,3),									 #最高价
+  EndPrice  NUMERIC(10,3),									     #收盘价
+  LowestPrice   NUMERIC(10,3),									 #最低价
+  ExAmount  BIGINT,															#成交额(千元)
+  EndPrice1  NUMERIC(10,3),									     #收盘价
+  ExAmount1  BIGINT,															#成交额(千元)
+  EndPrice2  NUMERIC(10,3),									     #收盘价
+  ExAmount2  BIGINT,															#成交额(千元)
+  EndPrice3  NUMERIC(10,3),									     #收盘价
+  ExAmount3  BIGINT,															#成交额(千元)
+  EndPrice4  NUMERIC(10,3),									     #收盘价
+  ExAmount4  BIGINT,															#成交额(千元)
+  EndPrice5  NUMERIC(10,3),									     #收盘价
+  ExAmount5  BIGINT,															#成交额(千元)
+  Msg VARCHAR(1024)
+);
+#建立StockID,StockBelong上的索引
+CREATE INDEX I_Stock_Past_ADJ_ID_ExDate ON t_stock_past_adj(StockID,StockBelong);
+
+
+CREATE TABLE IF NOT EXISTS T_SimpleQuery
+(
+  QID 		  		CHAR(6) NOT NULL  ,   #代码
+  QueryName     VARCHAR(20),										#中文名称
+  QuerySQL      VARCHAR(30000)  										#SQL块
+);
+insert into T_SimpleQuery( QID,QueryName,QuerySQL) values ('000001','异动查询','select msg,t.StockID,t.StockName,t.ExDate,t.EndPrice,t.EndPrice5 from t_stock_past_adj t order by msg desc');
+
+CREATE TABLE IF NOT EXISTS T_HisWinRate
+(
+  StockID 		  CHAR(6)   ,   #股票代码
+  StockName     VARCHAR(20),										#股票中文名称
+  StockBelong   CHAR(2),      	
+  EventMsg VARCHAR(1024),	
+  WinRate	Double
+);

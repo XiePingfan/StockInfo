@@ -1,0 +1,49 @@
+select t1.stockid, t3.StockName, t1.endprice,t2.endprice ,t2.endprice/t1.endprice  tt
+from
+(select stockid ,endprice,stockbelong
+  from t_stockhis_sina t
+ where exdate = '20151230') t1,
+
+ (select stockid ,endprice,stockbelong
+  from t_stockhis_sina t
+-- where exdate = date_format(sysdate(),'%Y%m%d') ) t2 ,
+ where exdate = '20160226' ) t2 ,
+ T_StockBaseInfo t3
+
+ where
+       t1.stockid = t2.stockid
+   and t1.stockid = t3.stockid
+   and t3.stockbelong  = t2.stockbelong
+   and t3.stockid = t2.stockid
+   and t1.stockbelong  = t2.stockbelong
+   and t1.stockid in (select StockID from t_stockhold)
+    order by tt desc
+
+
+-----------------------------------------------------------------------------------------------------
+select t4.exdate,t4.StockID,t4.StockBelong,t7.StockName,t4.EndPrice ,t4.ExAmount today,t5.EndPrice,t5.ExAmount yesterday ,t6.EndPrice,t6.ExAmount "before yesterday"
+  from (select t2.exdate exdate,t2.StockID StockID,t2.StockBelong StockBelong, t2.ExAmount ExAmount ,t2.EndPrice EndPrice
+          from t_stockhold t1,t_stockhis_sina t2
+         where t1.StockID = t2.StockID
+           and t1.StockBelong = t2.StockBelong
+           and t2.exdate = date_format(SUBDATE(sysdate(),1),'%Y%m%d')
+        ) t4,
+        (select t2.exdate exdate,t2.StockID StockID,t2.StockBelong StockBelong,t2.ExAmount ExAmount,t2.EndPrice EndPrice
+          from t_stockhold t1,t_stockhis_sina t2
+         where t1.StockID = t2.StockID
+           and t1.StockBelong = t2.StockBelong
+           and t2.exdate = date_format(SUBDATE(sysdate(),2),'%Y%m%d')
+        ) t5,
+        (select t2.exdate exdate,t2.StockID StockID,t2.StockBelong StockBelong,t2.ExAmount ExAmount,t2.EndPrice EndPrice
+          from t_stockhold t1,t_stockhis_sina t2
+         where t1.StockID = t2.StockID
+           and t1.StockBelong = t2.StockBelong
+           and t2.exdate = date_format(SUBDATE(sysdate(),3),'%Y%m%d')
+        ) t6,
+        T_StockBaseInfo t7
+  where t4.StockID = t5.StockID
+    and t4.StockBelong = t5.StockBelong
+    and t4.StockID = t6.StockID
+    and t4.StockBelong = t6.StockBelong
+    and t4.StockID = t7.StockID
+    and t4.StockBelong = t7.StockBelong
