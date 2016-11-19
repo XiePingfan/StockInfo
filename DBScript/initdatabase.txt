@@ -320,10 +320,14 @@ CREATE INDEX I_Stock_Past_ADJ_ID_ExDate ON t_stock_past_adj(StockID,StockBelong)
 CREATE TABLE IF NOT EXISTS T_SimpleQuery
 (
   QID 		  		CHAR(6) NOT NULL  ,   #代码
+  QType		CHAR(2),  #类型，Q-QUERY,E-EXECUTE
   QueryName     VARCHAR(20),										#中文名称
   QuerySQL      VARCHAR(30000)  										#SQL块
 );
-insert into T_SimpleQuery( QID,QueryName,QuerySQL) values ('000001','异动查询','select msg,t.StockID,t.StockName,t.ExDate,t.EndPrice,t.EndPrice5 from t_stock_past_adj t order by msg desc');
+insert into T_SimpleQuery( QID,QType,QueryName,QuerySQL) values ('000001','Q','异动查询','select msg,t.StockID,t.StockName,t.ExDate,t.EndPrice,t.EndPrice5 from t_stock_past_adj t order by msg desc');
+insert into T_SimpleQuery( QID,QType,QueryName,QuerySQL) values ('000002','Q','异动查询','select msg,t.* from t_stock_past_adj t order by msg desc');
+insert into T_SimpleQuery( QID,QType,QueryName,QuerySQL) values ('000003','E','保存异动','INSERT INTO t_stock_past_adj_his SELECT * FROM t_stock_past_adj WHERE msg IS NOT NULL');
+insert into T_SimpleQuery( QID,QType,QueryName,QuerySQL) values ('000004','Q','历史异动','select msg,t.StockID,ExDate,t.EndPrice from t_stock_past_adj_his t order by t.StockID,ExDate desc');
 
 CREATE TABLE IF NOT EXISTS T_HisWinRate
 (
@@ -332,4 +336,29 @@ CREATE TABLE IF NOT EXISTS T_HisWinRate
   StockBelong   CHAR(2),      	
   EventMsg VARCHAR(1024),	
   WinRate	Double
+);
+
+
+CREATE TABLE IF NOT EXISTS t_stock_past_adj_his
+(
+  StockID 		  CHAR(6)   ,   #股票代码
+  StockName     VARCHAR(20),										#股票中文名称
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  ExDate				CHAR(10)	NOT NULL,								 #成交日期
+  BeginPrice    NUMERIC(10,3),									 #开盘价
+  HighestPrice  NUMERIC(10,3),									 #最高价
+  EndPrice  NUMERIC(10,3),									     #收盘价
+  LowestPrice   NUMERIC(10,3),									 #最低价
+  ExAmount  BIGINT,															#成交额(千元)
+  EndPrice1  NUMERIC(10,3),									     #收盘价
+  ExAmount1  BIGINT,															#成交额(千元)
+  EndPrice2  NUMERIC(10,3),									     #收盘价
+  ExAmount2  BIGINT,															#成交额(千元)
+  EndPrice3  NUMERIC(10,3),									     #收盘价
+  ExAmount3  BIGINT,															#成交额(千元)
+  EndPrice4  NUMERIC(10,3),									     #收盘价
+  ExAmount4  BIGINT,															#成交额(千元)
+  EndPrice5  NUMERIC(10,3),									     #收盘价
+  ExAmount5  BIGINT,															#成交额(千元)
+  Msg VARCHAR(1024)
 );

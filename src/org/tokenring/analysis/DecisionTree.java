@@ -5,7 +5,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 public class DecisionTree {
+	Logger log = Logger.getLogger(DecisionTree.class);
 	DecisionTreeNode root;
 	List<ExDate> exDates;
 	public DecisionTree(List<ExDate> ExDates){
@@ -27,7 +30,7 @@ public class DecisionTree {
 				
 			}
 		}
-		System.out.println("hs.size = " + hs.size());
+		log.info("hs.size = " + hs.size());
 		root = new DecisionTreeNode(this,null,exDates,hs);
 		root.calcTreeBalance();
 	}

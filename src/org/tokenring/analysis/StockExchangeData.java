@@ -36,7 +36,11 @@ public class StockExchangeData {
 4.DIF、DEA的值从正数变成负数，或者从负数变成正数并不是交易信号，因为它们落后于市场。
 	*/
 	 
-	
+	Double myEMA12;
+	Double myEMA26;
+	Double myDIF;
+	Double myDEA;
+	Double myMACD;
 	
 	public Double getAveragePrice() {
 		return averagePrice;
@@ -137,5 +141,35 @@ public class StockExchangeData {
 		this.LowestPrice = LowestPrice;
 		this.ExQuantity = ExQuantity;
 		this.ExAmount = ExAmount;
+	}
+	public Double getMyEMA12() {
+		return myEMA12;
+	}
+	public void setMyEMA12(Double myEMA12) {
+		this.myEMA12 = myEMA12;
+	}
+	public Double getMyEMA26() {
+		return myEMA26;
+	}
+	public void setMyEMA26(Double myEMA26) {
+		this.myEMA26 = myEMA26;
+	}
+	public Double getMyDIF() {
+		return myDIF;
+	}
+	public void setMyDIF(Double myDIF) {
+		this.myDIF = myDIF;
+	}
+	public Double getMyDEA() {
+		return myDEA;
+	}
+	public void setMyDEA(Double myDEA) {
+		this.myDEA = myDEA;
+	}
+	public Double getMyMACD() {
+		return myMACD;
+	}
+	public void setMyMACD(Double myMACD) {
+		this.myMACD = myMACD;
 	}
 }

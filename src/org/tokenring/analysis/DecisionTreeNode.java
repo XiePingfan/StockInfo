@@ -7,7 +7,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 public class DecisionTreeNode {
+	Logger log = Logger.getLogger(DecisionTreeNode.class);
 	DecisionTreeNode root;//根节点 root 为 null
 	DecisionTreeNode left;
 	DecisionTreeNode right;
@@ -165,7 +168,7 @@ public class DecisionTreeNode {
 		sb.append(">[");
 		sb.append(df.format(winRate*100));
 		sb.append("%]");
-		System.out.println(sb.toString());
+		log.info(sb.toString());
 		if (this.left != null){
 			left.printNode();
 		}
