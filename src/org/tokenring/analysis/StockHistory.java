@@ -13,7 +13,45 @@ public class StockHistory {
 	String StockName;
 	List HisData;
 	boolean isCaclMACD = false;
+	boolean isCaclMyMACD = false;
 
+	public void calcMyMACD() {
+		// todo
+		if (isCaclMyMACD) return;
+		
+		int idxLast = HisData.size() - 1;
+		for (int idx = idxLast ; idx >= 0; idx--) {
+			StockExchangeData sedToday = getHisDataByExDate(idx);
+			StockExchangeData sedYesterday = getHisDataByExDate(idx + 1);
+
+			if (sedYesterday != null) {
+				calcAverageQuantity(idx,11);
+				Double newMyEMA12 = sedYesterday.getMyEMA12() * 11 / 13 + (double)sedToday.getExAmount() / sedToday.getExQuantity() * 2 / 13 * sedToday.getExQuantity() / sedToday.getAverageQuantity();
+				calcAverageQuantity(idx,25);
+				Double newMyEMA26 = sedYesterday.getMyEMA26() * 25 / 27 + (double)sedToday.getExAmount() / sedToday.getExQuantity() * 2 / 27 * sedToday.getExQuantity() / sedToday.getAverageQuantity();
+				Double newMyDIF = newMyEMA12 - newMyEMA26;
+				Double newMyDEA = sedYesterday.getMyDEA() * 8 / 10 + newMyDIF * 2 / 10;
+				Double newMyMACD = (newMyDIF - newMyDEA) * 2;
+
+				sedToday.setMyEMA12(newMyEMA12);
+				sedToday.setMyEMA26(newMyEMA26);
+				sedToday.setMyDIF(newMyDIF);
+				sedToday.setMyDEA(newMyDEA);
+				sedToday.setMyMACD(newMyMACD);
+			} else {
+				// sedYesterday == null 表示是第一天
+				// DIFF = 0,DEA = 0,MACD = 0,EMA12 = EMA26 = 收盘价
+				sedToday.setMyDIF(0.0);
+				sedToday.setMyDEA(0.0);
+				sedToday.setMyMACD(0.0);
+				sedToday.setMyEMA12((double)sedToday.getExAmount() / sedToday.getExQuantity());
+				sedToday.setMyEMA26((double)sedToday.getExAmount() / sedToday.getExQuantity());
+			}
+
+		}
+		isCaclMyMACD = true;
+	}
+	
 	public void calcMACD() {
 		// todo
 		if (isCaclMACD) return;

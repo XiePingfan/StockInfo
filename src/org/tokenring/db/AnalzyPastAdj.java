@@ -9,6 +9,7 @@ import org.tokenring.analysis.AnalyzeAverageAmount;
 import org.tokenring.analysis.AnalyzeAveragePrice;
 import org.tokenring.analysis.AnalyzeHistory;
 import org.tokenring.analysis.AnalyzeMACD;
+import org.tokenring.analysis.AnalyzeMyMACD;
 import org.tokenring.analysis.Event;
 import org.tokenring.analysis.StockHistory;
 
@@ -24,7 +25,8 @@ public class AnalzyPastAdj {
 
 		MySqlTrail mySQL2 = new MySqlTrail();
 		b = mySQL2.init();
-		sql = "select concat(substring(ExDate,1,4),'-',substring(ExDate,5,2),'-',substring(ExDate,7,2)) newExDate, ExDate from t_stockhis_sina where StockID = '000001' and stockbelong = 'SH' order by exdate desc limit 6";
+		//sql = "select concat(substring(ExDate,1,4),'-',substring(ExDate,5,2),'-',substring(ExDate,7,2)) newExDate, ExDate from t_stockhis_sina where StockID = '000001' and stockbelong = 'SH' order by exdate desc limit 6";
+		sql = "SELECT exdate newExDate FROM t_stockadjhis_sina t WHERE t.StockID = '000001'  ORDER BY exdate DESC  LIMIT 6";
 		ResultSet rs2 = mySQL2.QueryBySQL(sql);
 		if (rs2.next()) {
 			// 处理当天数据
@@ -103,6 +105,13 @@ public class AnalzyPastAdj {
 			//Event e = ah.doAnalzy(sh.getHisData().size() - 1);
 			Event e = ah.doAnalzy(0);
 			
+			if ((e != null) && (e.getExDate().equals(rs.getString("ExDate")))){
+				sb.append(e.getEventMsg());
+				sb.append(",");
+			}
+			
+			ah = new AnalyzeMyMACD(sh);
+			e = ah.doAnalzy(0);
 			if ((e != null) && (e.getExDate().equals(rs.getString("ExDate")))){
 				sb.append(e.getEventMsg());
 				sb.append(",");

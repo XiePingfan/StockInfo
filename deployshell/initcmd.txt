@@ -1,0 +1,10 @@
+su - mysql
+sudo /etc/init.d/mysql  start
+
+sudo /etc/init.d/cron start
+
+su - svn
+ ./startsvn.sh
+ 
+su - tomcat
+ sudo ./tom.sh
