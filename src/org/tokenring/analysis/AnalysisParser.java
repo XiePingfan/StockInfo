@@ -452,8 +452,8 @@ public class AnalysisParser {
 				ah = new AnalyzeMACD(ap.getStockHistory());
 				ap.addParser(ah);
 				
-				ah = new AnalyzeBTest(ap.getStockHistory());
-				ap.addParser(ah);
+				//ah = new AnalyzeBTest(ap.getStockHistory());
+				//ap.addParser(ah);
 				
 				/*
 				for (int i = 10; i <= 60; i++) {
@@ -477,12 +477,15 @@ public class AnalysisParser {
 				ap.doAssert();
 				ap.printAnalyze();
 				//ap.printAll();
+				
+				DecisionTree dt = new DecisionTree(ap.exDates);
+				dt.printTree();
 
 			}
 			rs.close();
 			mySQL.destroy();
-			// DecisionTree dt = new DecisionTree(ap.exDates);
-			// dt.printTree();
+			 //DecisionTree dt = new DecisionTree(ap.exDates);
+			 //dt.printTree();
 
 			/*
 			 * List<Event> events = ap.getEvents(); List<Event> rightEvents =
