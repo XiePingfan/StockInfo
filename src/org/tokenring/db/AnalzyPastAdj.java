@@ -10,6 +10,9 @@ import org.tokenring.analysis.AnalyzeAveragePrice;
 import org.tokenring.analysis.AnalyzeHistory;
 import org.tokenring.analysis.AnalyzeMACD;
 import org.tokenring.analysis.AnalyzeMyMACD;
+import org.tokenring.analysis.AnalyzeSigmaPrice;
+import org.tokenring.analysis.AnalyzeSigmaQuantity;
+import org.tokenring.analysis.AnalyzeSigmaSituation;
 import org.tokenring.analysis.Event;
 import org.tokenring.analysis.StockHistory;
 
@@ -116,10 +119,14 @@ public class AnalzyPastAdj {
 				sb.append(e.getEventMsg());
 				sb.append(",");
 			}
-			/*
+			
+			
+			
+			
 			AnalysisParser ap = new AnalysisParser(rs.getString("StockID"), rs.getString("StockBelong"));
 			
-			AnalyzeHistory ah;
+			
+			/*
 			for (int i = 10; i <= 60; i++) {
 				for (int j = 3; j < 15; j++) {
 					ah = new AnalyzeAverageAmount(i, j, true, ap.getStockHistory());
@@ -134,18 +141,28 @@ public class AnalzyPastAdj {
 
 				}
 			}
-			ap.prepareParser();
-			ap.prepareAssertForcast();
+			*/
+			ah = new AnalyzeSigmaPrice(sh);
+			ap.addParser(ah);
+			
+			ah = new AnalyzeSigmaQuantity(sh);
+			ap.addParser(ah);
+			
+			ah = new AnalyzeSigmaSituation(sh);
+			ap.addParser(ah);
+			
+			//ap.prepareParser();
+			//ap.prepareAssertForcast();
 			ap.doAnalyze();
 			
 			Iterator<Event>  iter = ap.getExDates().get(0).getEvents().iterator();
-			Event e;
+			Event event;
 			while(iter.hasNext()){
-				e = iter.next();
-				sb.append(e.getEventMsg());
+				event = iter.next();
+				sb.append(event.getEventMsg());
 				sb.append(",");
 			}
-			*/
+			
 			double dTemp;
 			// Rule 1: 5ÌìÕÇ·ù20%
 			if (dEndPrice > dEndPrice5 * 1.2) {
