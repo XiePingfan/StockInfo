@@ -123,21 +123,21 @@ public class AnalysisParser {
 		// assertChain.add(nextDaysRise);
 
 		AssertForcastNextNDaysMaxMRiseR next3DaysRise10 = new AssertForcastNextNDaysMaxMRiseR(3, 10, 1);
-		assertChain.add(next3DaysRise10);
+		//assertChain.add(next3DaysRise10);
 
 		AssertForcastNextNDaysMaxMRiseR next5DaysRise10 = new AssertForcastNextNDaysMaxMRiseR(5, 10, 1);
-		assertChain.add(next5DaysRise10);
+		//assertChain.add(next5DaysRise10);
 
 		AssertForcastNextNDaysMaxMRiseR next10DaysRise10 = new AssertForcastNextNDaysMaxMRiseR(10, 10, 1);
-		assertChain.add(next10DaysRise10);
+		//assertChain.add(next10DaysRise10);
 
-		AssertForcastNextNDaysMaxMRiseR next20DaysRise10 = new AssertForcastNextNDaysMaxMRiseR(20, 15, 2);
+		AssertForcastNextNDaysMaxMRiseR next20DaysRise10 = new AssertForcastNextNDaysMaxMRiseR(20, 10, 2);
 		assertChain.add(next20DaysRise10);
 
-		AssertForcastNextNDaysMaxMRiseR next30DaysRise20 = new AssertForcastNextNDaysMaxMRiseR(30, 20, 2);
+		AssertForcastNextNDaysMaxMRiseR next30DaysRise20 = new AssertForcastNextNDaysMaxMRiseR(30, 15, 2);
 		assertChain.add(next30DaysRise20);
 
-		AssertForcastNextNDaysMaxMRiseR next60DaysRise20 = new AssertForcastNextNDaysMaxMRiseR(60, 20, 2);
+		AssertForcastNextNDaysMaxMRiseR next60DaysRise20 = new AssertForcastNextNDaysMaxMRiseR(60, 20, 3);
 		assertChain.add(next60DaysRise20);
 
 		AssertForcastNextNDaysMaxMRiseR next90DaysRise30 = new AssertForcastNextNDaysMaxMRiseR(90, 30, 3);
@@ -288,17 +288,48 @@ public class AnalysisParser {
 			
 		}
 	}
-	public void printAnalyze() {
+	public double printAnalyze(String eventName) {
 		Map<String, InnerCount> mapAH = new HashMap<String, InnerCount>();
+		//add
+		InnerCount icMACD2 = new InnerCount();
+		icMACD2.losts = 0;
+		icMACD2.wins = 0;
+		mapAH.put("MyMACD+MACD", icMACD2);
+		//add end
 
 		Iterator<ExDate> iterEx = exDates.iterator();
 		ExDate ex;
 		Event e;
+		boolean bFindMACD = false;//add
+		boolean bFindMyMACD = false;//add
+		
 		while (iterEx.hasNext()) {
 			ex = iterEx.next();
 			Iterator<Event> iterEvent = ex.events.iterator();
+			
+			bFindMACD = false;//add
+			bFindMyMACD = false;//add
+			
 			while (iterEvent.hasNext()) {
 				e = iterEvent.next();
+				
+				if ("MyMACD 向上突破".equals(e.eventMsg)){
+					bFindMyMACD = true;
+				}
+				
+				if ("MACD 向上突破".equals(e.eventMsg)){
+					bFindMACD = true;
+				}
+				
+				if (bFindMACD && bFindMyMACD){
+					icMACD2 = (InnerCount) mapAH.get("MyMACD+MACD");
+					if (ex.isWin) {
+						icMACD2.wins++;
+					} else {
+						icMACD2.losts++;
+					}
+					mapAH.put(e.eventMsg, icMACD2);
+				}
 
 				if (mapAH.containsKey(e.eventMsg)) {
 					InnerCount ic = (InnerCount) mapAH.get(e.eventMsg);
@@ -341,7 +372,7 @@ public class AnalysisParser {
 				return iret;
 			}
 		});
-		;
+		
 		while (entries.hasNext()) {
 			Map.Entry entry = (Map.Entry) entries.next();
 			String key = (String) entry.getKey();
@@ -351,7 +382,7 @@ public class AnalysisParser {
 			StringBuffer sb = new StringBuffer();
 			double winRate = (double) value.wins / (value.wins + value.losts);
 			double rate = (double) (value.wins + value.losts) / this.exDates.size();
-			mapTopWinRate.put(winRate, key);
+			mapTopWinRate.put(winRate, key+"["+df.format(rate * 100)+"%]");
 /*
 			if ((winRate > 0.7) && (rate > 0.1)) {
 
@@ -378,6 +409,9 @@ public class AnalysisParser {
 		entries = mapTopWinRate.entrySet().iterator();
 		int i = 0;
 		
+
+		double ret = 0;
+		
 		MySqlTrail mySQL = new MySqlTrail();
 		boolean b = mySQL.init();
 		//while (entries.hasNext() && i < 3) {
@@ -393,8 +427,13 @@ public class AnalysisParser {
 			sb.append("%]");
 			log.info(sb.toString());
 			
+			if (!(eventName == null || eventName.isEmpty())){
+				if (value.contains(eventName)){
+					ret = key;
+				}
+			}
 			
-			
+			/*
 			StringBuffer sbSQL = new StringBuffer();
 			sbSQL.append("insert into T_HisWinRate(StockID,StockName,StockBelong,EventMsg,WinRate) values ('");
 			sbSQL.append(this.stockHistory.StockID);
@@ -408,11 +447,11 @@ public class AnalysisParser {
 			sbSQL.append(df.format(key * 100));
 			sbSQL.append(")");
 			mySQL.executeSQL(sbSQL.toString());
-			
+			*/
 			i++;
 		}
 		mySQL.destroy();
-
+		return ret;
 	}
 
 	public List<AssertEvent> getAssertEvents() {
@@ -440,8 +479,17 @@ public class AnalysisParser {
 			boolean b = mySQL.init();
 			String strSQL = "select StockID,StockBelong,StockName from T_StockBaseInfo where StockName != '上证指数'";
 			ResultSet rs = mySQL.QueryBySQL(strSQL);
+			
+			StringBuffer theEventMsg = new StringBuffer();
+			int totalCount = 0;
+			int beyond75 = 0;
+			int beyond60 = 0;
+			int beyond50 =0;
+			int beyond30 = 0;
+			int below30 = 0;
 
 			while (rs.next()) {
+				totalCount ++;
 				AnalysisParser ap = new AnalysisParser(rs.getString("StockID"), rs.getString("StockBelong"));
 				System.out.println("[StockID = " + rs.getString("StockID") + "][StockName = " + rs.getString("StockName") + "]");
 				log.fatal("[StockID = " + rs.getString("StockID") + "][StockName = " + rs.getString("StockName") + "]");
@@ -452,9 +500,20 @@ public class AnalysisParser {
 				ah = new AnalyzeMACD(ap.getStockHistory());
 				ap.addParser(ah);
 				
-				//ah = new AnalyzeBTest(ap.getStockHistory());
-				//ap.addParser(ah);
+				ah = new AnalyzeBTest(ap.getStockHistory());
+				ap.addParser(ah);
 				
+				ah = new AnalyzeMyMACD(ap.getStockHistory());
+				ap.addParser(ah);
+				
+				ah = new AnalyzeSigmaPrice(ap.getStockHistory());
+				ap.addParser(ah);
+				
+				ah = new AnalyzeSigmaQuantity(ap.getStockHistory());
+				ap.addParser(ah);
+				
+				ah = new AnalyzeSigmaSituation(ap.getStockHistory());
+				ap.addParser(ah);
 				/*
 				for (int i = 10; i <= 60; i++) {
 					for (int j = 3; j < 15; j++) {
@@ -475,16 +534,36 @@ public class AnalysisParser {
 				ap.prepareAssertForcast();
 				ap.doAnalyze();
 				ap.doAssert();
-				ap.printAnalyze();
+				double rate = ap.printAnalyze("Sigma分析 拐点向上");
+				//System.out.println(rate);
+				if (rate >= 0.75){
+					beyond75 ++;
+				}else if (rate >= 0.6){
+					beyond60 ++;
+				}else if(rate >= 0.5){
+					beyond50 ++;
+				}else if (rate >=0.3){
+					beyond30 ++;
+				}else{
+					below30 ++;
+				}
+				
 				//ap.printAll();
 				
-				DecisionTree dt = new DecisionTree(ap.exDates);
-				dt.printTree();
+				//DecisionTree dt = new DecisionTree(ap.exDates);
+				//dt.printTree();
 
 			}
 			rs.close();
 			mySQL.destroy();
-			 //DecisionTree dt = new DecisionTree(ap.exDates);
+			
+			System.out.println("Total count:" + totalCount);
+			System.out.println("Beyond75:" + beyond75);
+			System.out.println("Beyond60:" + beyond60);
+			System.out.println("Beyond50:" + beyond50);
+			System.out.println("Beyond30:" + beyond30);
+			System.out.println("Below30:" + below30);
+			//DecisionTree dt = new DecisionTree(ap.exDates);
 			 //dt.printTree();
 
 			/*
