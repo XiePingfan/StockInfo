@@ -6,15 +6,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Semaphore;
 
+import org.tokenring.db.MyBatis;
 import org.tokenring.db.MySqlTrail;
 
 public class UpdateExAmountFromSina {
-	public void doUpdate() {
-		MySqlTrail mySQL = new MySqlTrail();
-		boolean b = mySQL.init();
-		MySqlTrail mySQL2 = new MySqlTrail();
-		mySQL2.init();
+	public void doUpdate() throws InterruptedException {
+		//MySqlTrail mySQL = new MySqlTrail();
+		//boolean b = mySQL.init();
+		
 		
 
 		String stockID;
@@ -34,62 +38,49 @@ public class UpdateExAmountFromSina {
 //			e.printStackTrace();
 //		}
 
-		FromTradeHisByDate fthbd = new FromTradeHisByDate();
-		String strHisTrade;
+		
 
 		int i = 1;
-		try {
+
+
 			String sql = "Select StockID,StockBelong,ExDate FROM t_stockhis_sina where ExAmount is null ";
-			ResultSet rs = mySQL.QueryBySQL(sql);
-			
-			while (rs.next()) {
+			//String sql = "Select StockID,StockBelong,ExDate FROM t_stockhis_sina where StockID = '600570'";
+			//ResultSet rs = mySQL.QueryBySQL(sql);
+			MyBatis mb = MyBatis.getInstance();
+			List<Map> lm = mb.queryBySQL(sql);
+			Iterator<Map> itr = lm.iterator();
+			Semaphore  semp = new Semaphore(40);
+			Map m;
+			while (itr.hasNext()) {
 				if (i % 100 == 0) {
 					strToday = sdf.format(new Date());
 					System.out.println(strToday + " now:" + Integer.toString(i) + " of " );
 				}
-				stockID = rs.getString("StockID");
-				stockBelong = rs.getString("StockBelong");
-				mExDate = rs.getString("ExDate");
+				m = (Map) itr.next();
+				stockID = (String) m.get("StockID");
+				stockBelong = (String) m.get("StockBelong");
+				mExDate = (String) m.get("ExDate");
 				mExDate2 = mExDate.substring(0, 4) + "-" + mExDate.substring(4, 6) + "-" + mExDate.substring(6, 8);
 
-				//System.out.println(stockID + ":" + stockBelong + ":" + mExDate2);
-				strHisTrade = fthbd.queryTradeHisByDate(stockBelong.toLowerCase() + stockID, mExDate2);
-				//System.out.println(strHisTrade);
-				if (strHisTrade == ""){
-					System.out.println("call queryTradeHisByDate error.+[" + stockID + "][" + mExDate2 + "]" );
-					
-					continue;
-				}
-
-				sb = new StringBuffer();
-				sb.append("Update t_stockhis_sina set ExAmount = ");
-				sb.append(strHisTrade);
-				sb.append(" where StockID = '");
-				sb.append(stockID);
-				sb.append("' and StockBelong = '");
-				sb.append(stockBelong);
-				sb.append("' and ExDate = '");
-				sb.append(mExDate);
-				sb.append("'");
-				//System.out.println(sb.toString());
-				if (!mySQL2.executeSQL(sb.toString())){
-					mySQL2.destroy();
-					mySQL2 = new MySqlTrail();
-					mySQL2.init();
-					mySQL2.executeSQL(sb.toString());
-				}
+				// …Í«Î–Ìø…  
+			    semp.acquire(); 
+				UpdateExAmountFromSinaThread thread = new UpdateExAmountFromSinaThread();
+				thread.setStockID(stockID);
+				thread.setStockBelong(stockBelong);
+				thread.setSemp(semp);
+				thread.setmExDate(mExDate);
+				thread.setmExDate2(mExDate2);
+				thread.start();
+				
 				i++;
 				
 			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
 		strToday = sdf.format(new Date());
 		System.out.println("End:" + strToday);
 		
-		mySQL.destroy();
-		mySQL2.destroy();
+		//mySQL.destroy();
+		
 	}
 
 	private int GetNumRows(ResultSet rs) throws Exception {
@@ -110,14 +101,26 @@ public class UpdateExAmountFromSina {
 
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		// TODO Auto-generated method stub
 		/*String mExDate = "20140205";
 		String mExDate2 = mExDate.substring(0, 4) + "-" + mExDate.substring(4, 6) + "-" + mExDate.substring(6, 8);
 		System.out.println(mExDate2);*/
 		
+		System.out.println(System.currentTimeMillis());
 		UpdateExAmountFromSina uefs = new UpdateExAmountFromSina();
 		uefs.doUpdate();
+		/*
+		Semaphore  semp = new Semaphore(1);
+		UpdateExAmountFromSinaThread thread = new UpdateExAmountFromSinaThread();
+		thread.setStockID("000895");
+		thread.setStockBelong("SZ");
+		thread.setSemp(semp);
+		thread.setmExDate("20170308");
+		thread.setmExDate2("2017-03-08");
+		thread.start();
+		*/
+		System.out.println(System.currentTimeMillis());
 	}
 
 }

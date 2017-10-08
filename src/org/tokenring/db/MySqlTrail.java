@@ -18,14 +18,13 @@ public class MySqlTrail {
 		String driver = "com.mysql.jdbc.Driver";
 
 		// URL指向要访问的数据库名StockInfoDB
-		//String url = "jdbc:mysql://tokenring.jios.org:3306/StockInfoDB?autoReconnect=true";
-		String url = "jdbc:mysql://192.168.199.90:3306/StockInfoDB?autoReconnect=true";
+		String url = "jdbc:mysql://192.168.1.90:3306/StockInfoDB?autoReconnect=true";
 
 		// MySQL配置时的用户名
 		String user = "stockinfo";
 
 		// MySQL配置时的密码
-		String password = "stock@info";
+		String password = "***";
 
 		try {
 			// 加载驱动程序

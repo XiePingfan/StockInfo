@@ -1,6 +1,7 @@
 package org.tokenring.analysis;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class ExDate {
@@ -13,6 +14,17 @@ public class ExDate {
 	List<Event> events;
 	List<AssertEvent> assertEvents;
 	
+	public boolean hasEvent(String eventName){
+		Iterator<Event> itr_event = events.iterator();
+		Event e;
+		while (itr_event.hasNext()){
+			e = (Event)itr_event.next();
+			if (e.getEventMsg().equals(eventName)){
+				return true;
+			}
+		}
+		return false;
+	}
 	public ExDate(String stockID,String stockBelong,String stockName,String exDate,int idx){
 		this.stockID = stockID;
 		this.stockBelong = stockBelong;

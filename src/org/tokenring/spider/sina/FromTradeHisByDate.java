@@ -28,9 +28,11 @@ public class FromTradeHisByDate {
 			uc.setConnectTimeout(60000);
 			//设置超时1分钟
 			uc.setReadTimeout(60000);
+			
 			BufferedReader reader = new BufferedReader(new InputStreamReader(uc.getInputStream(), "GBK"));
 			
 			while ((line = reader.readLine()) != null) {
+				
 				//格式如下：<tr><td>成交额(千元):</td><td>273402.63</td></tr>
 				if (line.contains("成交额(千元):"))
 				{
@@ -54,7 +56,7 @@ public class FromTradeHisByDate {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		FromTradeHisByDate fthb = new FromTradeHisByDate();
-		System.out.println(fthb.queryTradeHisByDate("sh600570", "2014-03-14"));
+		System.out.println(fthb.queryTradeHisByDate("sz000895", "2017-03-06"));
 		
 	}
 

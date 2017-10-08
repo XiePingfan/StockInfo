@@ -28,14 +28,15 @@ public class AnalyzeMyMACD implements AnalyzeHistory {
 					// if ((sedToday.getDIF() > 0) && (sedToday.getDEA() > 0) &&
 					// ((Math.atan(deltaDIF) -
 					// Math.atan(deltaDEA))>(15*Math.PI/180) )){
-					/*
-					 * if ((Math.atan(deltaDIF) -
-					 * Math.atan(deltaDEA))>(15*Math.PI/180)) { return new
-					 * Event(stockHistory.getStockID(),
-					 * stockHistory.getStockBelong(),
-					 * stockHistory.getStockName(), "MACD 向上突破 15%", idx,
-					 * stockHistory.getHisDataByExDate(idx).getExDate()); }
-					 */
+
+					
+					  if ((Math.atan(deltaDIF) -
+					  Math.atan(deltaDEA))>(15*Math.PI/180)) { return new
+					  Event(stockHistory.getStockID(),
+					  stockHistory.getStockBelong(),
+					  stockHistory.getStockName(), "MyMACD 向上突破 15%", idx,
+					  stockHistory.getHisDataByExDate(idx).getExDate()); }
+
 					// 向上突破
 					return new Event(stockHistory.getStockID(), stockHistory.getStockBelong(),
 							stockHistory.getStockName(), "MyMACD 向上突破", idx,

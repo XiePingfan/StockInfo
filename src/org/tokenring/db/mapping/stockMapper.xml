@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.milkyway.mapping.stockMapper">
+
+	<select id="getStockBaseInfo" parameterType="map"
+		resultType="org.milkyway.vo.StockBaseInfo">
+		select * from T_StockBaseInfo where StockID like #{stockId} and
+		StockBelong=#{stockBelong}
+	</select>
+
+	<select id="getStockPastAdj" parameterType="map"
+		resultType="org.milkyway.vo.StockPastAdj">
+		select
+		StockID,StockBelong,ExDate,EndPrice,ExAmount,EndPrice1,ExAmount1,EndPrice2,ExAmount2,EndPrice3,ExAmount3,EndPrice4,ExAmount4,EndPrice5,ExAmount5
+		from t_stock_past_adj
+	</select>
+
+	<select id="getStockPast" parameterType="map"
+		resultType="org.milkyway.vo.StockPast">
+		select
+		StockID,StockBelong,ExDate,EndPrice,ExAmount,EndPrice1,ExAmount1,EndPrice2,ExAmount2,EndPrice3,ExAmount3,EndPrice4,ExAmount4,EndPrice5,ExAmount5
+		from t_stock_past
+	</select>
+
+
+	<select id="selectBysql" parameterType="map" resultType="map">
+		${sql}
+	</select>
+
+	<insert id="selfSql" parameterType="map">
+		${sql}
+	</insert>
+
+	<update id="ud_stockhis_sina" parameterType="map">
+		Update t_stockhis_sina
+		set ExAmount = #{exAmount}
+		where StockID =#{stockId}
+		and StockBelong = #{stockBelong}
+		and ExDate = #{exDate}
+	</update>
+
+	<insert id="in_stockhis_sina" parameterType="map">
+		INSERT INTO t_stockhis_sina
+		(StockID,StockBelong,ExDate,BeginPrice,HighestPrice,EndPrice,LowestPrice,ExQuantity)
+		VALUES (
+		#{stockId},#{stockBelong},#{exDate},#{beginPrice},#{highestPrice},
+		#{endPrice},#{lowestPrice},#{exQuantity}
+		)
+	</insert>
+
+	<insert id="in_stockadjhis_sina" parameterType="map">
+		INSERT INTO t_stockadjhis_sina
+		(StockID,StockBelong,ExDate,BeginPrice,HighestPrice,EndPrice,LowestPrice,ExQuantity,ExAmount,AdjRate)
+		VALUES (
+		#{stockId},#{stockBelong},#{exDate},#{beginPrice},#{highestPrice},
+		#{endPrice},#{lowestPrice},#{exQuantity},#{exAmount},#{adjRate}
+		)
+	</insert>
+
+	<insert id="in_stock_event_sina" parameterType="map">
+		insert into t_stock_event_sina(StockID,StockBelong,ExDate,IsWin,EventName)
+		values(
+		#{stockId},#{stockBelong},#{exDate},#{isWin},#{eventName}
+		)
+	</insert>
+
+	<delete id="del_stock_event_sina" parameterType="map">
+		delete from t_stock_event_sina where StockID = #{stockId}
+	</delete>
+
+	<delete id="del_his_win_rate" parameterType="map">
+		delete from T_HisWinRate where StockID = #{stockId} and StockBelong =
+		#{stockBelong}
+	</delete>
+
+	<insert id="in_his_win_rate_by_stock_event_sina" parameterType="map">
+		INSERT INTO
+		T_HisWinRate(StockID,StockName,StockBelong,EventMsg,WinRate)
+		SELECT
+		tall.StockID,tall.StockName,tall.StockBelong,tall.EventName,twin.win/tall.al*100
+		wrate
+		FROM
+		(SELECT t1.StockID,t2.StockName,t1.StockBelong,t1.EventName,COUNT(*) al
+		FROM t_stock_event_sina t1,T_StockBaseInfo t2
+		WHERE t1.StockID = t2.StockID
+		AND t1.StockBelong = t2.StockBelong
+		AND t1.StockID = #{stockId}
+		GROUP BY StockID,StockBelong,EventName) tall,
+		(SELECT t1.StockID,t2.StockName,t1.StockBelong,t1.EventName,COUNT(*) win
+		FROM t_stock_event_sina t1,T_StockBaseInfo t2
+		WHERE t1.StockID = t2.StockID
+		AND t1.StockBelong = t2.StockBelong
+		AND t1.IsWin = 'Y'
+		AND t1.StockID = #{stockId}
+		GROUP BY StockID,StockBelong,EventName) twin
+		WHERE tall.StockID = twin.StockID
+		AND tall.StockBelong = twin.StockBelong
+		AND tall.EventName = twin.EventName
+	</insert>
+
+</mapper>

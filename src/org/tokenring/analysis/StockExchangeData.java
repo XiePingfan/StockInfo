@@ -12,6 +12,88 @@ public class StockExchangeData {
 	Double averageQuantity;
 	Double averageAmount;
 	
+	//
+	double K;
+	double D;
+	double J;
+	double RSV;
+	
+	
+	int priceType;  // -1 : 价大跌     0: 价平   1:价大升   
+	int quantityType;    //-1:量大跌   0:量平     1:量大涨
+	int situation;   //-1 : 处于下降      0: 处于持平    1:处于上升  2:处于拐点向上 -2：处于拐点向下
+	double average;
+	double quantitySigma;
+	double priceAverage;
+	double priceSigma;
+	
+	
+	public double getK() {
+		return K;
+	}
+	public void setK(double k) {
+		K = k;
+	}
+	public double getD() {
+		return D;
+	}
+	public void setD(double d) {
+		D = d;
+	}
+	public double getJ() {
+		return J;
+	}
+	public void setJ(double j) {
+		J = j;
+	}
+	public double getRSV() {
+		return RSV;
+	}
+	public void setRSV(double rSV) {
+		RSV = rSV;
+	}
+	public double getPriceAverage() {
+		return priceAverage;
+	}
+	public void setPriceAverage(double priceAverage) {
+		this.priceAverage = priceAverage;
+	}
+	public double getPriceSigma() {
+		return priceSigma;
+	}
+	public void setPriceSigma(double priceSigma) {
+		this.priceSigma = priceSigma;
+	}
+	public int getPriceType() {
+		return priceType;
+	}
+	public void setPriceType(int priceType) {
+		this.priceType = priceType;
+	}
+	public int getQuantityType() {
+		return quantityType;
+	}
+	public void setQuantityType(int quantityType) {
+		this.quantityType = quantityType;
+	}
+	public int getSituation() {
+		return situation;
+	}
+	public void setSituation(int situation) {
+		this.situation = situation;
+	}
+	public double getAverage() {
+		return average;
+	}
+	public void setAverage(double average) {
+		this.average = average;
+	}
+	public double getSigma() {
+		return quantitySigma;
+	}
+	public void setSigma(double sigma) {
+		this.quantitySigma = sigma;
+	}
 	//EMA（12） = 前一日EMA（12） X 11/13 + 今日收盘价 X 2/13
 	Double EMA12;
 	//EMA（26） = 前一日EMA（26） X 25/27 + 今日收盘价 X 2/27
