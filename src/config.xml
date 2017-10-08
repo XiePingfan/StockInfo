@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+   <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC" />
+            <!-- 配置数据库连接信�?-->
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.jdbc.Driver" />
+                <property name="url" value="jdbc:mysql://192.168.1.90:3306/StockInfoDB" /> 
+                
+                <property name="username" value="stockinfo" />
+                <property name="password" value="****" />
+                <property name="poolMaximumActiveConnections" value="50" />
+                <property name="poolMaximumIdleConnections" value="5" />
+                <property name="poolMaximumCheckoutTime" value="60000" />
+  
+            </dataSource>
+        </environment>
+    </environments>
+    
+    <mappers>
+        <!-- 注册stcokMapper.xml文件�?
+        -->
+        <mapper resource="org/tokenring/db/mapping/stockMapper.xml"/>
+    </mappers>
+</configuration>
