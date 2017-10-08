@@ -12,6 +12,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 import org.tokenring.db.*;
 
@@ -26,92 +30,89 @@ import org.tokenring.db.*;
   example : http://biz.finance.sina.com.cn/stock/flash_hq/kline_data.php?&rand=random(10000)&symbol=sh600887&end_date=20160105&begin_date=20000101&type=plain"
  */
 public class FromKLineData {
-	public void execute() throws MalformedURLException, UnsupportedEncodingException, SQLException, IOException {
+	public void execute() throws Exception {
+		MyBatis mb = MyBatis.getInstance();
+		String sql = "Select StockID,StockBelong FROM T_StockBaseInfo";
+		List<Map> lm = mb.queryBySQL(sql);
+		int iRowNum = lm.size();
+		String stockID;
+		String stockBelong;
+		KLineWorkThread thread;
+		Semaphore  semp = new Semaphore(30);
+		Iterator itr = lm.iterator();
+		Map m;
+		int i = 1;
+		while (itr.hasNext()) {
+			m = (Map) itr.next();
+			
+			stockID = (String) m.get("StockID");
+			stockBelong = (String) m.get("StockBelong");
+			
+			System.out.println("now:[" + i++ + " of "+ iRowNum + "]" + stockID + "." + stockBelong);
+			// 申请许可  
+		    semp.acquire();  
+			thread = new KLineWorkThread();
+			thread.setSemp(semp);
+			thread.setStockID(stockID);
+			thread.setStockBelong(stockBelong);
+			thread.start();
+		}
+		
+		/*
 		MySqlTrail mySQL = new MySqlTrail();
 		boolean b = mySQL.init();
-		MySqlTrail mySQL2 = new MySqlTrail();
-		b = mySQL2.init();
+		//MySqlTrail mySQL2 = new MySqlTrail();
+		//b = mySQL2.init();
 		String sql = "Select StockID,StockBelong FROM T_StockBaseInfo";
 		ResultSet rs = mySQL.QueryBySQL(sql);
+		int iRowNum = GetNumRows(rs);
 
 		String stockID;
 		String stockBelong;
-		String mExDate;
-		StringBuffer sb;
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-		String strToday = sdf.format(new Date());
-		URL ur = null;
-		HttpURLConnection uc;
-		String line;
+		//String mExDate;
+		//StringBuffer sb;
+		KLineWorkThread thread;
+		Semaphore  semp = new Semaphore(30);
+		
+		
 
 		while (rs.next()) {
 			stockID = rs.getString("StockID");
 			stockBelong = rs.getString("StockBelong");
-			System.out.println("now:[" + rs.getRow() + " of 83]" + stockID + "." + stockBelong);
-
-			sql = "Select MAX(ExDate) mExDate FROM t_stockhis_sina where StockID = '" + stockID
-					+ "' AND StockBelong = '" + stockBelong + "'";
-			ResultSet rs2 = mySQL2.QueryBySQL(sql);
-			rs2.next();
-			mExDate = rs2.getString("mExDate");
-			if (mExDate == null) {
-				mExDate = "20000101";
-			}
-
-			sb = new StringBuffer();
-			sb.append("http://biz.finance.sina.com.cn/stock/flash_hq/kline_data.php?&rand=random(10000)&symbol=");
-			sb.append(stockBelong.toLowerCase());
-			sb.append(stockID);
-			sb.append("&end_date=");
-			sb.append(strToday);
-			sb.append("&begin_date=");
-			sb.append(mExDate);
-			sb.append("&type=plain");
-
-			ur = new URL(sb.toString());
-			
-			uc = (HttpURLConnection) ur.openConnection();
-			//设置超时1分钟
-			uc.setConnectTimeout(60000);
-			uc.setReadTimeout(60000);
-			//BufferedReader reader = new BufferedReader(new InputStreamReader(ur.openStream(), "GBK"));
-			BufferedReader reader = new BufferedReader(new InputStreamReader(uc.getInputStream(),"GBK"));
-
-			while ((line = reader.readLine()) != null) {
-
-				String[] strArr = line.split(",");
-
-				if ( mExDate.equals(strArr[0].replace("-", ""))) {
-					continue;
-				}
-				sb = new StringBuffer();
-				sb.append(
-						"INSERT INTO t_stockhis_sina (StockID,StockBelong,ExDate,BeginPrice,HighestPrice,EndPrice,LowestPrice,ExQuantity) VALUES ('");
-				sb.append(stockID); // StockID
-				sb.append("','");
-				sb.append(stockBelong); // StockBelong
-				sb.append("','");
-				sb.append(strArr[0].replace("-", "")); // ExDate
-				sb.append("','");
-				sb.append(strArr[1]); // BeginPrice
-				sb.append("','");
-				sb.append(strArr[2]); // HighestPrice
-				sb.append("','");
-				sb.append(strArr[3]); // EndPrice
-				sb.append("','");
-				sb.append(strArr[4]); // LowestPrice
-				sb.append("','");
-				sb.append(strArr[5]); // ExQuantity
-				sb.append("')");
-
-				mySQL2.executeSQL(sb.toString());
-			}
+			System.out.println("now:[" + rs.getRow() + " of "+ iRowNum + "]" + stockID + "." + stockBelong);
+			// 申请许可  
+		    semp.acquire();  
+			thread = new KLineWorkThread();
+			thread.setSemp(semp);
+			thread.setStockID(stockID);
+			thread.setStockBelong(stockBelong);
+			thread.start();
 		}
 		mySQL.destroy();
-		mySQL2.destroy();
+		//mySQL2.destroy();
+		 * 
+		 */
 	}
 
-	public static void main(String[] args) throws MalformedURLException {
+	private int GetNumRows(ResultSet rs) throws Exception {
+
+		// 通过改方法获取结果集的行数
+
+		int result = 0;
+
+		if (rs.last()) {
+
+			result = rs.getRow();
+
+			rs.beforeFirst();// 光标回滚
+
+		}
+
+		return result;
+
+	}
+
+	public static void main(String[] args){
 		FromKLineData fkld = new FromKLineData();
 
 		try {
@@ -120,13 +121,19 @@ public class FromKLineData {
 			fkld.execute();
 			System.out.print("End:");
 			System.out.println(new Date());
-		} catch (UnsupportedEncodingException e) {
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

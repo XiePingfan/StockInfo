@@ -12,6 +12,12 @@ public class StockExchangeData {
 	Double averageQuantity;
 	Double averageAmount;
 	
+	//
+	double K;
+	double D;
+	double J;
+	double RSV;
+	
 	
 	int priceType;  // -1 : 价大跌     0: 价平   1:价大升   
 	int quantityType;    //-1:量大跌   0:量平     1:量大涨
@@ -22,6 +28,30 @@ public class StockExchangeData {
 	double priceSigma;
 	
 	
+	public double getK() {
+		return K;
+	}
+	public void setK(double k) {
+		K = k;
+	}
+	public double getD() {
+		return D;
+	}
+	public void setD(double d) {
+		D = d;
+	}
+	public double getJ() {
+		return J;
+	}
+	public void setJ(double j) {
+		J = j;
+	}
+	public double getRSV() {
+		return RSV;
+	}
+	public void setRSV(double rSV) {
+		RSV = rSV;
+	}
 	public double getPriceAverage() {
 		return priceAverage;
 	}

@@ -1,5 +1,6 @@
 package org.tokenring.analysis;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -7,9 +8,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.milkyway.vo.StockVO;
+import org.tokenring.db.MyBatis;
 import org.tokenring.db.MySqlTrail;
 
 import com.google.gson.Gson;
@@ -21,6 +24,7 @@ public class StockHistory {
 	List HisData;   //HisData中保存最新日期数据为0，越早的数据id越大
 	boolean isCaclMACD = false;
 	boolean isCaclMyMACD = false;
+	boolean isCaclKDJ = false;
 	boolean isCaclSigma = false;
 	
 	public void calcAllSigma(){
@@ -28,7 +32,7 @@ public class StockHistory {
 		
 		int idxLast = HisData.size() - 1;
 		for (int idx = idxLast ; idx >= 0; idx--) {
-			calcSigma(idx,idx + 20,3);
+			calcSigma(idx,idx + 40,3);
 		}
 		isCaclSigma = true;
 	}
@@ -189,7 +193,7 @@ Below30:7
          //Beyond50:26
          //Beyond30:25
          //Below30:26
-		boolean bCase1 =  (lowest5 == idx) && (sedToday.getQuantityType() == 1)&& (hasUpShadow(idx));
+		boolean bCase1 =  (sedToday.getQuantityType() == 1)&& (hasUpShadow(idx));  // (lowest5 == idx) &&
 		boolean bCase2 = (sedToday.getExAmount() >= 3* sedYesterday.getExAmount()) 
 				&& (sedYesterday.getSituation() == -1)&& (hasUpShadow(idx));
 		boolean bCase3 = false;
@@ -321,7 +325,7 @@ Below30:7
 		double daverage=0;
 		int count = 0;
 		
-		double prices=0;
+		
 		for (int i = fromId;i < toId;i++){
 			count ++;
 			quantitis += ((StockExchangeData)HisData.get(i)).ExQuantity;
@@ -339,6 +343,27 @@ Below30:7
 
 		sedToday.setAverage(daverage);
 		sedToday.setSigma(dsigma);
+		//
+		double prices=0;
+		double pricesAverage=0;
+		count = 0;
+		for (int i = fromId;i < toId;i++){
+			count ++;
+			prices += ((StockExchangeData)HisData.get(i)).getEndPrice();
+		}
+		pricesAverage = prices/count;
+		double dsigmaPrice = 0;
+
+		for (int i = fromId;i < toId;i++){
+
+			dsigmaPrice += Math.pow( (((StockExchangeData)HisData.get(i)).getEndPrice() - pricesAverage), 2) ;
+		}
+		dsigmaPrice /= count;
+		dsigmaPrice = Math.sqrt(dsigmaPrice);
+		
+
+		sedToday.setPriceAverage(pricesAverage);
+		sedToday.setPriceSigma(dsigmaPrice);
 		
 		if (null == sedYesterday){
 			//第一天
@@ -438,6 +463,54 @@ Below30:7
 
 		}
 		isCaclMACD = true;
+	}
+	
+	/*
+	 * KDJ的计算比较复杂，首先要计算周期（n日、n周等）的RSV值，即未成熟随机指标值，然后再计算K值、D值、J值等。以n日KDJ数值的计算为例，其计算公式为
+		n日RSV=（Cn－Ln）/（Hn－Ln）×100
+		公式中，Cn为第n日收盘价；Ln为n日内的最低价；Hn为n日内的最高价。
+		其次，计算K值与D值：
+		当日K值=2/3×前一日K值+1/3×当日RSV
+		当日D值=2/3×前一日D值+1/3×当日K值
+		若无前一日K 值与D值，则可分别用50来代替。
+		J值=3*当日K值-2*当日D值
+		以9日为周期的KD线为例，即未成熟随机值，计算公式为
+		9日RSV=（C－L9）÷（H9－L9）×100
+		公式中，C为第9日的收盘价；L9为9日内的最低价；H9为9日内的最高价。
+		K值=2/3×第8日K值+1/3×第9日RSV
+		D值=2/3×第8日D值+1/3×第9日K值
+		J值=3*第9日K值-2*第9日D值
+		若无前一日K值与D值，则可以分别用50代替。
+	 */
+	public void calcKDJ() {
+		// todo
+		if (isCaclKDJ) return;
+		
+		int idxLast = HisData.size() - 1;
+		for (int idx = idxLast ; idx >= 0; idx--) {
+			StockExchangeData sedToday = getHisDataByExDate(idx);
+			StockExchangeData sedYesterday = getHisDataByExDate(idx + 1);
+
+			double h = getHisDataByExDate(searchHigh(idx,idx + 9)).getEndPrice();
+			double l = getHisDataByExDate(searchLow(idx,idx + 9)).getEndPrice();
+			double k,d,j,rsv;
+			if ((sedYesterday == null) ||(h == l)){
+				rsv = 50.0;
+				k = 2.0 / 3 * 50 + 1.0 / 3 * rsv;
+				d = 2.0 / 3 * 50 + 1.0 / 3 * k;
+				j = 3.0 * k - 2.0 * d;
+			} else {
+				rsv = 1.0 * (sedToday.getEndPrice() - l) / (h - l) * 100;
+				k = 2.0 / 3 * sedYesterday.getK() + 1.0 / 3 * rsv;
+				d = 2.0 / 3 * sedYesterday.getD() + 1.0 / 3 * k;
+				j = 3.0 * k - 2.0 * d;						
+			}
+			sedToday.setRSV(rsv);
+			sedToday.setK(k);
+			sedToday.setD(d);
+			sedToday.setJ(j);
+		}
+		isCaclKDJ = true;
 	}
 
 	public void calcAveragePrice(int idx, int days) {
@@ -560,34 +633,43 @@ Below30:7
 		this.StockID = StockID;
 		this.StockBelong = StockBelong;
 		this.HisData = new ArrayList();
-		MySqlTrail mySQL = new MySqlTrail();
-		boolean b = mySQL.init();
+		
+		MyBatis mb = MyBatis.getInstance();
 
 		String strSQL = "select StockName from T_StockBaseInfo where StockID = '" + StockID + "' and StockBelong = '"
 				+ StockBelong + "' limit 1";
-		ResultSet rs = mySQL.QueryBySQL(strSQL);
+		List<Map> lm = mb.queryBySQL(strSQL);
+		Map m = lm.get(0);
+		//ResultSet rs = mySQL.QueryBySQL(strSQL);
 
-		if (rs.next()) {
-			this.StockName = rs.getString(1);
+		if ((m != null) && (m.get("StockName") != null)) {
+			this.StockName = (String) m.get("StockName");
 		}
-		rs.close();
+		
 		// initHisData
 		// strSQL = "select
 		// ExDate,BeginPrice,HighestPrice,EndPrice,LowestPrice,ExQuantity,ExAmount
 		// from t_stockhis_sina where StockID = '" + StockID + "' and
 		// StockBelong = '" + StockBelong + "' order by ExDate desc";
-		strSQL = "select ExDate,BeginPrice,HighestPrice,EndPrice,LowestPrice,ExQuantity/10000,ExAmount/10000 from t_stockadjhis_sina where StockID = '"
+		strSQL = "select ExDate,BeginPrice,HighestPrice,EndPrice,LowestPrice,ExQuantity/10000 NewExQ,ExAmount/10000 NewExA from t_stockadjhis_sina where StockID = '"
 				+ StockID + "' and StockBelong = '" + StockBelong + "' order by ExDate desc";
-		rs = mySQL.QueryBySQL(strSQL);
+		lm = mb.queryBySQL(strSQL);
+		Iterator itr = lm.iterator();
 
-		while (rs.next()) {
-			StockExchangeData sed = new StockExchangeData(rs.getString(1), rs.getDouble(2), rs.getDouble(3),
-					rs.getDouble(4), rs.getDouble(5), rs.getInt(6), rs.getInt(7));
+		while (itr.hasNext()) {
+			m = (Map) itr.next();
+			StockExchangeData sed = new StockExchangeData((String)m.get("ExDate"), 
+					((BigDecimal) m.get("BeginPrice")).doubleValue(),//Double.valueOf((String)m.get("BeginPrice")),
+					((BigDecimal) m.get("HighestPrice")).doubleValue(),
+					((BigDecimal) m.get("EndPrice")).doubleValue(),
+					((BigDecimal) m.get("LowestPrice")).doubleValue(),
+					((BigDecimal) m.get("NewExQ")).intValue(),
+					((BigDecimal) m.get("NewExA")).intValue()
+					);
 
 			HisData.add(sed);
 		}
-		rs.close();
-		mySQL.destroy();
+
 	}
 
 	public static void main(String[] args) throws ParseException {

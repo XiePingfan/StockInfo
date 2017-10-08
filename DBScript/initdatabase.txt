@@ -9,16 +9,17 @@
 create database StockInfoDB CHARACTER SET gbk;
 FLUSH PRIVILEGES;
 
-GRANT ALL ON StockInfoDB.* TO 'stockinfo'@'%' identified by 'stock@info';
+GRANT ALL ON StockInfoDB.* TO 'stockinfo'@'%' identified by 'dd';
 FLUSH PRIVILEGES;
 
-GRANT ALL ON StockInfoDB.* TO 'stockinfo'@'localhost' identified by 'stock@info';
+GRANT ALL ON StockInfoDB.* TO 'stockinfo'@'localhost' identified by 'dd';
 FLUSH PRIVILEGES;
 
 
 use StockInfoDB;
 SET NAMES GBK;
 
+drop table T_StockBaseInfo;
 CREATE TABLE IF NOT EXISTS T_StockBaseInfo
 (
   StockID 		  CHAR(6) NOT NULL  ,   #股票代码
@@ -29,7 +30,8 @@ CREATE TABLE IF NOT EXISTS T_StockBaseInfo
 #建立StockID上的索引
 CREATE INDEX I_StockBaseInfo_ID ON T_StockBaseInfo(StockID);
 
-CREATE TABLE IF NOT EXISTS t_stockhis_sina
+drop table T_StockHis_Sina;
+CREATE TABLE IF NOT EXISTS T_StockHis_Sina
 (
   StockID 		  CHAR(6) NOT NULL  ,   #股票代码
   StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
@@ -48,6 +50,7 @@ CREATE INDEX I_StockHisSina_ID ON T_StockHis_Sina(StockID);
 #建立StockID,ExDate上的索引
 CREATE INDEX I_StockHisSina_ID_ExDate ON T_StockHis_Sina(StockID,ExDate);
 
+drop table t_stockadjhis_sina;
 CREATE TABLE IF NOT EXISTS t_stockadjhis_sina
 (
   StockID 		  CHAR(6) NOT NULL  ,   #股票代码
@@ -234,7 +237,7 @@ values ('603288','SH','海天味业','');
 
 insert into T_StockBaseInfo (StockID,StockBelong,StockName,StockCode) values ('399001','SZ','深圳成指','SZCZ');
 
-
+drop table t_stock_past;
 CREATE TABLE IF NOT EXISTS t_stock_past
 (
   StockID 		  CHAR(6) NOT NULL  ,   #股票代码
@@ -261,6 +264,7 @@ CREATE TABLE IF NOT EXISTS t_stock_past
 #建立StockID,StockBelong上的索引
 CREATE INDEX I_Stock_Past_ID_ExDate ON t_stock_past(StockID,StockBelong);
 
+drop table t_stock_assert_event;
 CREATE TABLE IF NOT EXISTS t_stock_assert_event
 (
   StockID 		  CHAR(6) NOT NULL  ,   #股票代码
@@ -277,6 +281,7 @@ CREATE INDEX I_Stock_Assert_Event_EventMsg ON t_stock_assert_event(EventMsg);
 #AssertMsg
 CREATE INDEX I_Stock_Assert_Event_AssertMsg ON t_stock_assert_event(AssertMsg);
 
+drop table t_stock_event;
 CREATE TABLE IF NOT EXISTS t_stock_event
 (
   StockID 		  CHAR(6) NOT NULL  ,   #股票代码
@@ -290,6 +295,7 @@ CREATE INDEX I_Stock_Event_ID_ExDate ON t_stock_event(StockID,StockBelong);
 #建立EventMsg上的索引
 CREATE INDEX I_Stock_Event_EventMsg ON t_stock_event(EventMsg);
 
+drop table t_stock_past_adj;
 CREATE TABLE IF NOT EXISTS t_stock_past_adj
 (
   StockID 		  CHAR(6) NOT NULL  ,   #股票代码
@@ -316,7 +322,7 @@ CREATE TABLE IF NOT EXISTS t_stock_past_adj
 #建立StockID,StockBelong上的索引
 CREATE INDEX I_Stock_Past_ADJ_ID_ExDate ON t_stock_past_adj(StockID,StockBelong);
 
-
+drop table T_SimpleQuery;
 CREATE TABLE IF NOT EXISTS T_SimpleQuery
 (
   QID 		  		CHAR(6) NOT NULL  ,   #代码
@@ -327,8 +333,9 @@ CREATE TABLE IF NOT EXISTS T_SimpleQuery
 insert into T_SimpleQuery( QID,QType,QueryName,QuerySQL) values ('000001','Q','异动查询','select msg,t.StockID,t.StockName,t.ExDate,t.EndPrice,t.EndPrice5 from t_stock_past_adj t order by msg desc');
 insert into T_SimpleQuery( QID,QType,QueryName,QuerySQL) values ('000002','Q','异动查询','select msg,t.* from t_stock_past_adj t order by msg desc');
 insert into T_SimpleQuery( QID,QType,QueryName,QuerySQL) values ('000003','E','保存异动','INSERT INTO t_stock_past_adj_his SELECT * FROM t_stock_past_adj WHERE msg IS NOT NULL');
-insert into T_SimpleQuery( QID,QType,QueryName,QuerySQL) values ('000004','Q','历史异动','select msg,t.StockID,ExDate,t.EndPrice from t_stock_past_adj_his t order by t.StockID,ExDate desc');
+insert into T_SimpleQuery( QID,QType,QueryName,QuerySQL) values ('000004','Q','历史异动','select msg,t.StockID,ExDate,t.EndPrice from t_stock_past_adj_his t order by ExDate,t.StockID desc');
 
+drop table T_HisWinRate;
 CREATE TABLE IF NOT EXISTS T_HisWinRate
 (
   StockID 		  CHAR(6)   ,   #股票代码
@@ -338,7 +345,7 @@ CREATE TABLE IF NOT EXISTS T_HisWinRate
   WinRate	Double
 );
 
-
+drop table t_stock_past_adj_his;
 CREATE TABLE IF NOT EXISTS t_stock_past_adj_his
 (
   StockID 		  CHAR(6)   ,   #股票代码
@@ -362,3 +369,89 @@ CREATE TABLE IF NOT EXISTS t_stock_past_adj_his
   ExAmount5  BIGINT,															#成交额(千元)
   Msg VARCHAR(1024)
 );
+drop table t_stock_event_sina;
+CREATE TABLE IF NOT EXISTS t_stock_event_sina
+(
+  StockID 		  CHAR(6) NOT NULL  ,   #股票代码
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  ExDate				CHAR(10)	NOT NULL,								 #成交日期
+  IsWin					CHAR(1),									#是否达成 Y/N
+  EventName			VARCHAR(1024)						#事件名称
+);
+#建立StockID上的索引
+CREATE INDEX I_StockEvent_ID ON t_stock_event_sina(StockID);
+#建立StockID,ExDate上的索引
+CREATE INDEX I_StockEvent_ID_ExDate ON t_stock_event_sina(StockID,ExDate);
+
+drop table t_event_liftrate_sina;
+CREATE TABLE IF NOT EXISTS t_event_liftrate_sina
+(
+  StockID 		  CHAR(6) NOT NULL  ,   #股票代码
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  EventName			VARCHAR(1024),						#事件名称
+  LiftRate			NUMERIC(10,3)							#提升率   (win-loss)/(win + loss) * 100
+);
+#建立StockID上的索引
+CREATE INDEX I_Event_STOCK_ID_ENAME ON t_event_liftrate_sina(StockID,EventName);
+
+#从tushare获取历史1分钟成交数据
+drop table T_HIS_1_MIN_TUSHARE;
+CREATE TABLE IF NOT EXISTS T_HIS_1_MIN_TUSHARE
+(
+  StockID 		  CHAR(6) NOT NULL  ,   #股票代码
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  ExDate				CHAR(10)	NOT NULL,				 #成交日期
+  ExTime				CHAR(10),
+  Price    NUMERIC(10,3),									 #成交价格
+  PriceChange   NUMERIC(10,3),									 #价格变动
+  Volume   NUMERIC(10,3),									 #成交手
+  Type     VARCHAR(1024),      									 #买卖类型【买盘、卖盘、中性盘】
+  AdjRate		NUMERIC(10,3),								 #复权因子
+  ExAmount  BIGINT										 #成交金额(元)
+);
+CREATE INDEX I_HIS_1_MIN_TUSHARE_ID_DATE ON T_HIS_1_MIN_TUSHARE(StockID,ExDate);
+
+#从tushare获取历史5分钟成交数据
+drop table T_HIS_5_MIN_TUSHARE;
+CREATE TABLE IF NOT EXISTS T_HIS_5_MIN_TUSHARE
+(
+  StockID 		  CHAR(6) NOT NULL  ,   #股票代码
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  ExDate				CHAR(10)	NOT NULL,				 #成交日期
+  ExTime				CHAR(10),
+  Price    NUMERIC(10,3),									 #成交价格
+  PriceChange   NUMERIC(10,3),									 #价格变动
+  Volume   NUMERIC(10,3),									 #成交手
+  Type     VARCHAR(1024),      									 #买卖类型【买盘、卖盘、中性盘】
+  AdjRate		NUMERIC(10,3),								 #复权因子
+  ExAmount  BIGINT										 #成交金额(元)
+);
+CREATE INDEX I_HIS_5_MIN_TUSHARE_ID_DATE ON T_HIS_5_MIN_TUSHARE(STOCKID,EXDATE);
+
+#从tushare获取历史5分钟成交数据
+drop table T_HIS_5_MIN_K_TUSHARE;
+CREATE TABLE IF NOT EXISTS T_HIS_5_MIN_K_TUSHARE
+(
+  StockID 		  CHAR(6) NOT NULL  ,   #股票代码
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  ExDate				CHAR(10)	NOT NULL,				 #成交日期
+  ExTime				CHAR(10),
+  BeginPrice    NUMERIC(10,3),									 #开盘价
+  HighestPrice  NUMERIC(10,3),									 #最高价
+  EndPrice  NUMERIC(10,3),									     #收盘价
+  LowestPrice   NUMERIC(10,3),									 #最低价
+  ExQuantity   BIGINT,      									     #交易量(股)
+  AdjRate		NUMERIC(10,3),									     #复权因子
+  ExAmount  BIGINT															#交易金额(元)
+);
+CREATE INDEX I_HIS_5_MIN_K_TUSHARE_ID_DATE ON T_HIS_5_MIN_K_TUSHARE(STOCKID,EXDATE);
+
+drop table T_STOCK_INDUSTRY_AREA;
+CREATE TABLE IF NOT EXISTS T_STOCK_INDUSTRY_AREA
+(
+  StockID 		  CHAR(6) NOT NULL  ,   #股票代码
+  StockBelong   CHAR(2),      									 #沪市SH，深市 SZ
+  INDUSTRY 	VARCHAR(64), 									#行业
+  AREA		VARCHAR(64)									#地区
+);
+CREATE INDEX I_STOCK_INDUSTRY_AREA_ID ON T_STOCK_INDUSTRY_AREA(StockID);
